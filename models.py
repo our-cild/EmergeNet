@@ -4,6 +4,7 @@ from torch_geometric.nn import global_mean_pool as gap, global_max_pool as gmp
 from torch_geometric.nn import GCNConv
 
 from layers import GCN, HGPSLPool
+from torch.nn import Linear, BatchNorm1d##
 
 
 class Model(torch.nn.Module):
@@ -26,19 +27,21 @@ class Model(torch.nn.Module):
 
         self.pool1 = HGPSLPool(self.nhid, self.pooling_ratio, self.sample, self.sparse, self.sl, self.lamb)
         self.pool2 = HGPSLPool(self.nhid, self.pooling_ratio, self.sample, self.sparse, self.sl, self.lamb)
+        self.bn = BatchNorm1d(self.nhid)##
 
         self.lin1 = torch.nn.Linear(self.nhid * 2, self.nhid)
         self.lin2 = torch.nn.Linear(self.nhid, self.nhid // 2)
         self.lin3 = torch.nn.Linear(self.nhid // 2, self.num_classes)
 
-    def forward(self, data):
+    def forward(self, data, if_ = None, radt = None, radb = None, radidx = None, label = None):
         x, edge_index, batch = data.x, data.edge_index, data.batch
         edge_attr = None
-
+        
         x = F.relu(self.conv1(x, edge_index, edge_attr))
+        
         x, edge_index, edge_attr, batch = self.pool1(x, edge_index, edge_attr, batch)
         x1 = torch.cat([gmp(x, batch), gap(x, batch)], dim=1)
-
+        x = self.bn(x)
         x = F.relu(self.conv2(x, edge_index, edge_attr))
         x, edge_index, edge_attr, batch = self.pool2(x, edge_index, edge_attr, batch)
         x2 = torch.cat([gmp(x, batch), gap(x, batch)], dim=1)
@@ -47,11 +50,16 @@ class Model(torch.nn.Module):
         x3 = torch.cat([gmp(x, batch), gap(x, batch)], dim=1)
 
         x = F.relu(x1) + F.relu(x2) + F.relu(x3)
-
+        
         x = F.relu(self.lin1(x))
+        '''if if_ != None:
+            x = F.dropout(x, p = if_, training=self.training)'''
+        
         x = F.dropout(x, p=self.dropout_ratio, training=self.training)
         x = F.relu(self.lin2(x))
+        x_ = x
         x = F.dropout(x, p=self.dropout_ratio, training=self.training)
+        
         x = F.log_softmax(self.lin3(x), dim=-1)
-
-        return x
+        
+        return x, x_
