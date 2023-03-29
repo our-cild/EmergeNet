@@ -42,17 +42,20 @@ args.num_classes = dataset.num_classes
 args.num_features = dataset.num_features
 
 #print(args)
-for i in range(0, len(dataset) ):
-    dataset[i].x[0][0] = i
-    dataset[i].x[0][1] = i
 
 
 
 
-num_training = int(len(dataset) * 0.8)
-num_val = int(len(dataset) * 0.1)
+
+num_training = int(len(dataset) * 0.1)
+num_val = int(len(dataset) * 0.8)
 num_test = len(dataset) - (num_training + num_val)
 training_set, validation_set, test_set = random_split(dataset, [num_training, num_val, num_test])
+
+if training_set[1].x[0][0] != training_set[1].x[0][1]:
+    for i in range(0, len(training_set) ):
+        training_set[i].x[0][0] = i
+        training_set[i].x[0][1] = i
 
 train_loader = DataLoader(training_set, batch_size=args.batch_size, shuffle=True)
 val_loader = DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, pin_memory = True)
@@ -82,7 +85,7 @@ def train():
     model.load_state_dict(torch.load('HGP-SL/modelinicial/100my_file.npy') )
     model.train()
     Already_in = []##
-    Free_func()
+    more_terms = 0##
     for epoch in range(args.epochs):
         loss_train = 0.0
         correct = 0
@@ -110,8 +113,8 @@ def train():
                 if loss_ > 1:
                     if data[j].x[0][0] not in Already_in:
                         #print('yes_1')
-                        Already_in.append(j)
-                        node_ = [out_Feature[j].to("cpu"), data[j].to("cpu"), data_y[j].to("cpu"), loss_.to("cpu")]
+                        Already_in.append(data[j].x[0][0])
+                        node_ = [out_Feature[j].to("cpu"), data[j].to("cpu"), data_y[j].to("cpu"), loss_.to("cpu"), i]
                         Node.append(node_)
                         Node_num.append(data[j].x[0][0])
                         
@@ -124,30 +127,32 @@ def train():
                 if loss_ < 0.1:
                     if data[j].x[0][0] not in Already_in:
                         #print("yes_2")
-                        Already_in.append(j)
-                        node_ = [out_Feature[j].to("cpu"), data[j].to("cpu"), data_y[j].to("cpu"), loss_.to("cpu")]
+                        Already_in.append(data[j].x[0][0])
+                        node_ = [out_Feature[j].to("cpu"), data[j].to("cpu"), data_y[j].to("cpu"), loss_.to("cpu"), i]
                         Node.append(node_)
                         Node_num.append(data[j].x[0][0])
                         test_2 += 1
                 loss += loss_
-            print("test_1:", test_1)
-            print("test_2:", test_2)
-            print("test_1/0:", test_1/test_0)
+            #print("test_1:", test_1)
+            #print("test_2:", test_2)
+            #print("test_1/0:", test_1/test_0)
             
             #data_ = to_data_list(data)
             loss.backward()
             optimizer.step()
             loss_origin = loss
-            test_main(Node, Node_num)
-            '''####
+            #test_main(Node, Node_num)
+            ####
             Node_ = [] 
             Node_num_ = []
-            data_list_review, AnchorList, VentureList, BaseLoss = test_main(Node, Node_num)
-            
+            data_list_review = test_main(Node, Node_num)
+            more_terms += len(data_list_review)
+            print(more_terms)
             if len(data_list_review) != 0:
                 Review_loader = DataListLoader(data_list_review, batch_size=64, shuffle=False)
-                Conservatism_or_Adventurism = 0#-1 for Conservatism, 1 for Adventurism and 0 for not decided
+                
                 for j, data in enumerate(Review_loader):
+                    #Conservatism_or_Adventurism = 0#1 for Conservatism, 2 for Adventurism and 0 for not decided
                     optimizer.zero_grad()
                     data = data.to(args.device)
                     out, out_Feature = model(data)
@@ -158,31 +163,33 @@ def train():
                         #print("d_1:", data.y[])
                         data_y = torch.unsqueeze(data.y, 1) 
                         loss_ = F.nll_loss(torch.unsqueeze(out[k], 0), data_y[k])
-                        if k in AnchorList:
+                        loss += loss_
+                        '''if k in AnchorList:
                             if loss_ > 0.10:
                                 AnchorLoss += Loss_
                                 node_ = Node[Node_num.index(data[k].x[0][0])]
                                 if Sim(node_[0], out_Feature[k] ) > 0.1:
                                     Node_.append(node_)
                                     Node_num_.append((node_[1][0][0])
-                                    Conservatism_or_Adventurism = -1
-                                    
+                                    #Conservatism_or_Adventurism = 1                                    
                         elif k in VentureList:
                             if loss_ < BaseLoss - 0.1:
                                 if loss < 0.8:
                                     VentureGain += BaseLoss - loss_
                                     node_ = Node[Node_num.index(data[k].x[0][0])]
-                                    if Sim(node_[0], out_Feature[k] ) > 0.1 and Conservatism_or_Adventurism != -1:
+                                    if Sim(node_[0], out_Feature[k] ) > 0.1 and True:
+                                                     ##Conservatism_or_Adventurism != 1:
                                         Node_.append(node_)
                                         Node_num_.append((node_[1][0][0])
-                                        Conservatism_or_Adventurism = 1
-                if Conservatism_or_Adventurism != -0:
+                                        ##Conservatism_or_Adventurism -= 1
+                    ##if Conservatism_or_Adventurism == 0:
+                      ##  break'''
+                        
+                #data_list_review, AnchorList, VentureList, BaseLoss = test_main(Node, Node_num)
                     
-                data_list_review, AnchorList, VentureList, BaseLoss = test_main(Node, Node_num)
-                loss += loss_
-            loss.backward()
-            optimizer.step()
-            ####'''
+                    loss.backward()
+                    optimizer.step()
+            ####
             
             loss_train += loss_origin.item()
             pred = out.max(dim=1)[1]
@@ -197,7 +204,7 @@ def train():
         ####
         
         store = 'HGP-SL/modelinicial/' + str(100)+'my_file.npy'          
-        torch.save(model.state_dict(), store)
+        ##torch.save(model.state_dict(), store)
         
         ####
         torch.save(model.state_dict(), '{}.pth'.format(epoch))
@@ -242,9 +249,9 @@ def compute_test(loader):
 
 if __name__ == '__main__':
     # Model training
+    Free_func()####
     best_model = train()
     # Restore best model for test set
     model.load_state_dict(torch.load('{}.pth'.format(best_model)))
     test_acc, test_loss = compute_test(test_loader)
     print('Test set results, loss = {:.6f}, accuracy = {:.6f}'.format(test_loss, test_acc))
-
