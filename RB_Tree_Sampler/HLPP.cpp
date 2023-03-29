@@ -1,4 +1,3 @@
-
 // 编译命令 g++ -o libtryPython.so -shared -fPIC tryPython.cpp
 #include<iostream>
 #include <cstdio>
@@ -7,6 +6,8 @@
 #include <stack>
 
 #include <random>
+
+#include <list>
 using namespace std;
 extern "C"{
     
@@ -36,10 +37,10 @@ extern "C"{
     stack<int> G;////G for those node found meet the requirement in the process
 
     void add_path(int f, int t, int v, int f_h_e, bool if_f) { 
-        printf("\nf:%d,h[f]:%d\n",f,h[f]);
+        //printf("\nf:%d,h[f]:%d\n",f,h[f]);
         e[++cnt] = (edge){h[f], t, v, f_h_e, if_f};
         h[f] = cnt; 
-        printf("\nf:%d,h[f]:%d\n",f,h[f]);
+        //printf("\nf:%d,h[f]:%d\n",f,h[f]);
     }
 
     void add_flow(int f, int t, int v, int f_h_e, int t_h_e) {
@@ -71,7 +72,18 @@ extern "C"{
             if (ex[v].flow >= 50){
                 int v_ = v;
                 G.push(v_);
-            }                
+            }  
+            else{
+                time_t t;
+                
+                srand((unsigned) time(&t));/* 初始化随机数发生器 */
+                if ((rand() % (10-1+1))+ 1 > 9){
+                    //?
+                    //To get a random return num in [1, 10]
+                    int v_ = v;
+                    G.push(v_);
+                }
+            }
         }
         else{
             if (E_or_C){
@@ -125,13 +137,20 @@ extern "C"{
       while (B[level].size() == 0 && level > -1) level--;
       return level == -1 ? 0 : B[level].top();
     }
-
+    
     typedef struct StructPointer
     {   //just for pass parameter to the python code for it seems can't convert an array to python code
         list<int> new_list = {};
-    }StructPointer, *StructPointer; 
-
-    void hlpp(bool conservatism_or_adventurism = false, int*return_) {                  // 返回最大流
+        int num = 0;
+        bool operator==(const StructPointer &p)
+        {
+            return (this->num == p.num);
+        }
+    } s_test ;
+    
+    int *hlpp(bool conservatism_or_adventurism, int *return__ ) {                  // 返回最大流
+      //int* return_ = new int [200];
+      //StructPointer *return_;
       if (!bfs_init()) return 0;  // 图不连通
       memset(gap, 0, sizeof(gap));
       for (int i = 1; i <= n; i++)
@@ -142,22 +161,40 @@ extern "C"{
       while ((u = Select_())) {
         B[level].pop();
         if (Push(u)) {  // 仍然溢出
-          if (!--gap[ht[u]])
-            for (int i = 1; i <= n; i++)
-              if (i != s && i != t && ht[i] > ht[u] && ht[i] < n + 1)
+          if (!--gap[ht[u]]){
+            for (int i = 1; i <= n; i++){
+              if (i != s && i != t && ht[i] > ht[u] && ht[i] < n + 1){
                 ht[i] = n + 1;  // 这里重贴成 n+1 的节点都不是溢出节点
+              }
+            }
+          }
           relabel(u);
         }
       }
-      //StructPointer p = (StructPointer)malloc(200*sizeof(StructPointerTest));  
+      //StructPointer p = (StructPointer)malloc(200*sizeof(StructPointerTest)); 
+      int rand_ = 0;
+      int i_term = 0;//Just for convert stack<int> to int
+      int i_term_ = 0;
+      time_t t;          
+      srand((unsigned) time(&t));/* 初始化随机数发生器 */
       for (int i = 0; i <= G.size();i++){
-          return_[i]->new_list[i] = G[i]
+          
+          rand_ = rand() % (10 - 0 + 1) + 0;//to get a random return num in [0, 10]
+          i_term = G.top();
+          G.pop();
+          i_term_ = ex[i_term].ex;
+          if (rand_* i_term_ > 5){
+              ////return__.new_list.append(G[i]);
+              return__[i] = i_term;
+          //return_[i]->new_list[i] = G[i];
+          }
       }
+      return return__;
       //return ex[t].ex;
       //return p
     }
-    
-    void HLPP(int n_, int m_, int s_, int t_, int *b, bool conservatism_or_adventurism, int *return_) {
+    //Num_of_nodes, len(for_topic_sample), 0, Num_of_t,b_arr
+    int *HLPP(int n_, int m_, int s_, int t_, int *b, bool conservatism_or_adventurism, int *return_) {
       n = n_;
       m = m_;
       s = s_;
@@ -170,7 +207,7 @@ extern "C"{
           // 产生10个随机数
           for(int i = 0; i < 10; i++) {
               int q = rd()%(max - min) + min;
-              printf("\nq:%d\n",q);
+              //printf("\nq:%d\n",q);
           }
           
       }
@@ -184,21 +221,31 @@ extern "C"{
         printf("\ntest:%d\n", w);
         add_flow(u, v, w, 0, 0);
       }
-      hlpp(false, return_);
-        #return get_answer
-      //printf("%d\n", hlpp());
+      
+      //return_ = hlpp(false, return_);
+      //list<int>new_list;
+      //return__.append(1);
+      //##
+      for(int i=0;i<3;i++)
+      {
+          return_[i]++;
+      }
+
+      //##
+      return return_;
+      //printf("%d\n", hlpp(false, return_));
     }
+    /*
     int main() {
       scanf("%d%d%d%d", &n, &m, &s, &t);
       for (int i = 1, u, v, w; i <= m; i++) {
         scanf("%d%d%d", &u, &v, &w);
         add_flow(u, v, w, 0, 0);
       }
-      printf("%d", hlpp());
+      printf("%d", hlpp(false, return_));
       return 0;
     }
-
+*/
 
 
 }
-
