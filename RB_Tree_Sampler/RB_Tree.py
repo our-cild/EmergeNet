@@ -1,4 +1,4 @@
-import time
+   import time
 #import torch.nn.Functional as F
 import torch
 
@@ -214,10 +214,7 @@ def RBInsert(T, T_num, z, Last_node = None, if_hard = False, if_insert = True, R
                     x = x.right
                     max_sim = sim_r
                     stop = False
-            elif x.right == T.nil and x == T.root:
-                print("yes_t__:")
-            else:
-                print("yes_t_")
+           
             if stop:
                 break
         y = x
@@ -576,7 +573,7 @@ for_topic_sample_node_list_n = []##废弃
 for_topic_sample_edge_f = []####
 for_topic_sample_edge_t = []####
 for_topic_sample_edge_w = []
-for_topic_sample_edge_p = []####
+##for_topic_sample_edge_p = []####
 
 def FrontSample(T, x, x_last, x_standard, Sim_Min, x_last_p = None, shadow_num = None, target_node = None):
     ##on
@@ -584,13 +581,18 @@ def FrontSample(T, x, x_last, x_standard, Sim_Min, x_last_p = None, shadow_num =
     global for_topic_sample_edge_f
     global for_topic_sample_edge_t
     global for_topic_sample_edge_w 
-    global for_topic_sample_edge_p 
+    ##global for_topic_sample_edge_p 
     global for_topic_sample_edge_e 
     global for_topic_sample_node_list
     global for_topic_sample_node_list_n
     
     x_p = None
     if x != T.nil and x != None :     
+        if len(for_topic_sample_edge_e) >= 0 and len(for_topic_sample_edge_e) < 2000:
+            print("1")
+        else:
+            print("2:", len(for_topic_sample_edge_e), type(for_topic_sample_edge_e))
+            
         ####if shadow_num != None:
         sim_ = Sim(x.key, x_last.key)
         term_1 = False
@@ -614,7 +616,7 @@ def FrontSample(T, x, x_last, x_standard, Sim_Min, x_last_p = None, shadow_num =
                     #Sim_special(x.key, x_last.key, )
                     for_topic_sample_edge_w.append(sim_)##test for now
                 else:
-                    for_topic_sample_edge_w.append(10*sim_)
+                    for_topic_sample_edge_w.append(sim_)
                 if x == x.parent.left:
                     ##x_p = copy.deepcopy(x_last_p)
                     ##x_p = x_p.append(0)
@@ -704,7 +706,7 @@ def TopicSample(T, x, max = None, min = None, sample_location = None, Begin = Fa
     global for_topic_sample_edge_f 
     global for_topic_sample_edge_t 
     global for_topic_sample_edge_w 
-    global for_topic_sample_edge_p
+    ##global for_topic_sample_edge_p
     global for_topic_sample_edge_e 
     global for_topic_sample_node_list 
     global for_topic_sample_node_list_n         
@@ -712,7 +714,7 @@ def TopicSample(T, x, max = None, min = None, sample_location = None, Begin = Fa
     for_topic_sample_edge_f = []
     for_topic_sample_edge_t = []
     for_topic_sample_edge_w = []
-    for_topic_sample_edge_p = []
+    ##for_topic_sample_edge_p = []
     for_topic_sample_edge_e = []
     for_topic_sample_node_list = [x.data[0]]
     ####for_topic_sample_node_list_n = [0]
@@ -722,7 +724,7 @@ def TopicSample(T, x, max = None, min = None, sample_location = None, Begin = Fa
     for i in range(0,len(x.shadowconnect) ):
         if x.shadowconnect[i] != None:
             FrontSample(T, x.shadowconnect[i], x, x_standard, Sim_Min, x_last_p_, i)
-    def KN_to_P(kn:int):
+    '''def KN_to_P(kn:int):
         ##Should be abandoned 
         ##Map key to place on the RB-tree
         try:
@@ -731,24 +733,31 @@ def TopicSample(T, x, max = None, min = None, sample_location = None, Begin = Fa
         except:
             print("1")
             P = [0]
-        return P
-    for_topic_sample_edge_t.append(x_.key)
-    for_topic_sample_edge_t_set = list(set(for_topic_sample_edge_t))
+        return P'''
+    
+    for_topic_sample_edge_t.append(x_.data[0])
+    ##for_topic_sample_edge_t_set = list(set(for_topic_sample_edge_t))
     def KN_to_Num(kn):
         return for_topic_sample_node_list.index(kn)
     def Num_to_KN(N):
         return for_topic_sample_edge_t[N]
 
-    Input_to_MF = []
+    ##Input_to_MF = []
     print("test:", len(for_topic_sample_edge_e))
     #test = KN_to_Num(for_topic_sample_edge_f[0])####
-    Input_to_MF_f = map(KN_to_Num, for_topic_sample_edge_f)
-    Input_to_MF_t = map(KN_to_Num, for_topic_sample_edge_t)
-    Input_to_MF_w = map(KN_to_Num, for_topic_sample_edge_w)
-    for i in range(0, len(for_topic_sample_edge_p) ):
-        Input_to_MF.append(Input_to_MF_f[i])
-        Input_to_MF.append(Input_to_MF_t[i])
-        Input_to_MF.append(Input_to_MF_w[i])
+    Input_to_MF_f = list(map(KN_to_Num, for_topic_sample_edge_f) )
+    Input_to_MF_t = list(map(KN_to_Num, for_topic_sample_edge_t) )
+    Input_to_MF_w = for_topic_sample_edge_w
+    if len(Input_to_MF_w) == 1:
+        Input_to_MF_w = torch.Tensor(Input_to_MF_w)
+    print("test__:", Input_to_MF_w, "test___:", len(for_topic_sample_edge_f))
+    ##print("s_of_Input_to_MF_w:", len(Input_to_MF_w) )
+    
+    Input_to_MF = (c_int*(3*len(for_topic_sample_edge_e) )  )()
+    for i in range(0, len(for_topic_sample_edge_e) ):
+        Input_to_MF[3*i] = (Input_to_MF_f[i])
+        Input_to_MF[3*i + 1] = (Input_to_MF_t[i])
+        Input_to_MF[3*i + 2] = (Input_to_MF_w)
         '''
         Input_to_MF.append(KN_to_Num(for_topic_sample_f[i]) )
         Input_to_MF.append(KN_to_Num(for_topic_sample_t[i]) )
@@ -766,22 +775,15 @@ def TopicSample(T, x, max = None, min = None, sample_location = None, Begin = Fa
         Input_to_MF.append(10)
         Num_of_nodes += 1'''
     
-    
-    b_arr = (c_int*(len(for_topic_sample_edge_p) ) )(*Input_to_MF)
-    #c_arr = (c_int*(len(for_topic_sample_edge_p) ) )(*Input_to_MF)
     c_arr = (ctypes.c_int*128)()
-    #Return_Sample = adder.HLPP(Num_of_nodes, len(for_topic_sample_edge_e), 0, Num_of_t,b_arr, False, c_arr)
-    #print("testRS:", Return_Sample)
-    #print("test:", len(Return_Sample))
+    Num_of_edge = len(for_topic_sample_edge_e)
+    adder.HLPP(Num_of_nodes, Num_of_edge, 0, Num_of_t, Input_to_MF, False, c_arr)
+    print("testRS:", c_arr[0])
     #if len(Return_Sample) < min:
      #   pass
         ##here should be Giant_Component_Sample()
     #Return_Sample = map(K_to_P, map(Num_to_K(N), Return_Sample) )
     Return_ = []
-    if len(for_topic_sample_edge_p) != 0:
-        for i in range(128):
-            print("yes___")
-            #Return_.append(c_arr[i])
     #for item in Return_Sample.new_list:
      #   Return_.append(data_list_[data_num_list[item]][1])
     return Return_
