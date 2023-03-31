@@ -14,7 +14,7 @@ extern "C"{
     bool E_or_C = 0;//if go on explore first way or check what not considered way 0 for the latter and vice verse
     const int N = 1200, M = 120000, INF = 0x3f3f3f3f;
     int n, m, s, t;
-    random_device rd;
+    //random_device rd;
     struct edge {
       int nex, t, v, t_h_e, if_f;
       //t_h_e for the hardship of each node, positive for the hardship while negative for how easy the node is, we can judge easy nodes as a 
@@ -76,8 +76,8 @@ extern "C"{
             else{
                 time_t t;
                 
-                srand((unsigned) time(&t));/* 初始化随机数发生器 */
-                if ((rand() % (10-1+1))+ 1 > 9){
+                //srand((unsigned) time(&t));/* 初始化随机数发生器 */
+                if ((5 % (10-1+1))+ 1 > 9){
                     //?
                     //To get a random return num in [1, 10]
                     int v_ = v;
@@ -148,7 +148,7 @@ extern "C"{
         }
     } s_test ;
     
-    int *hlpp(bool conservatism_or_adventurism, int *return__ ) {                  // 返回最大流
+    int hlpp(bool conservatism_or_adventurism, int *return__ ) {                  // 返回最大流
       //int* return_ = new int [200];
       //StructPointer *return_;
       if (!bfs_init()) return 0;  // 图不连通
@@ -172,14 +172,14 @@ extern "C"{
         }
       }
       //StructPointer p = (StructPointer)malloc(200*sizeof(StructPointerTest)); 
-      int rand_ = 0;
+      int rand_ = 5;
       int i_term = 0;//Just for convert stack<int> to int
       int i_term_ = 0;
       time_t t;          
-      srand((unsigned) time(&t));/* 初始化随机数发生器 */
-      for (int i = 0; i <= G.size();i++){
+      //srand((unsigned) time(&t));/* 初始化随机数发生器 */
+      for (int i = 0; i <= G.size() && i < 127;i++){
           
-          rand_ = rand() % (10 - 0 + 1) + 0;//to get a random return num in [0, 10]
+          //rand_ = rand() % (10 - 0 + 1) + 0;//to get a random return num in [0, 10]
           i_term = G.top();
           G.pop();
           i_term_ = ex[i_term].ex;
@@ -189,12 +189,12 @@ extern "C"{
           //return_[i]->new_list[i] = G[i];
           }
       }
-      return return__;
+      return 1;
       //return ex[t].ex;
       //return p
     }
     //Num_of_nodes, len(for_topic_sample), 0, Num_of_t,b_arr
-    int *HLPP(int n_, int m_, int s_, int t_, int *b, bool conservatism_or_adventurism, int *return_) {
+    void HLPP(int n_, int m_, int s_, int t_, int *Input_to_MF, bool conservatism_or_adventurism, int *Return_) {
       n = n_;
       m = m_;
       s = s_;
@@ -202,7 +202,7 @@ extern "C"{
       int u, v, w;
       int min = 0;
       int max = 100;
-      
+      /*
       for (int i = 0;i < 10;i++){
           // 产生10个随机数
           for(int i = 0; i < 10; i++) {
@@ -210,29 +210,30 @@ extern "C"{
               //printf("\nq:%d\n",q);
           }
           
-      }
+      }*/
       
       //scanf("%d%d%d%d", &n, &m, &s, &t);
-      for (int i = 0; i < m; i++) {
+      for (int i = 0; i < m_ - 1; i++) {
         //scanf("%d%d%d", &u, &v, &w);
-        u = *(b + 3*i);
-        v = *(b + 3*i + 1);
-        w = *(b + 3*i + 2);
-        printf("\ntest:%d\n", w);
+        u = Input_to_MF[3*i];
+        v = *(Input_to_MF + 3*i + 1);
+        w = *(Input_to_MF + 3*i + 2);
+        printf("\ntest_f:%d", u);
+        printf("test_t:%d\n",v);
         add_flow(u, v, w, 0, 0);
       }
       
-      //return_ = hlpp(false, return_);
+      hlpp(false, Return_);
       //list<int>new_list;
       //return__.append(1);
       //##
       for(int i=0;i<3;i++)
       {
-          return_[i]++;
+          Return_[i]++;
       }
 
       //##
-      return return_;
+      //return return_;
       //printf("%d\n", hlpp(false, return_));
     }
     /*
